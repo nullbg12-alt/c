@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockyworld</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #555;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            pointer-events: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game"></canvas>
+
+    <script src="script/perlin.js"></script>
+    <script src="script/rng.js"></script>
+    <script src="script/config.js"></script>
+    <script src="script/state.js"></script>
+    <script src="script/inventory.js"></script>
+    <script src="script/blocks.js"></script>
+    <script src="script/textures.js"></script>
+    <script src="script/world.js"></script>
+    <script src="script/player.js"></script>
+    <script src="script/mobs.js"></script>
+    <script src="script/network.js"></script>
+    <script src="script/render.js"></script>
+    <script src="script/input.js"></script>
+    <script src="script/a.js"></script>
+</body>
+</html>
