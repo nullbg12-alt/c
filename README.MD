@@ -2,7 +2,7 @@
 
 A 2D block-based sandbox game with survival, crafting, mobs, and LAN multiplayer. Built in vanilla JavaScript on a single HTML5 canvas.
 
-**Version:** b1.10.2
+**Version:** b1.11
 
 ---
 

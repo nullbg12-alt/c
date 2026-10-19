@@ -5,7 +5,7 @@ const GROUND_LEVEL = 175;
 const CHUNK_SIZE = 256;
 const MESA_BIOME_THRESHOLD = 0.72;
 
-const VERSION = 'b1.10.2';
+const VERSION = 'b1.11';
 let debugOpen = false;
 
 const GRAVITY = 0.045;
