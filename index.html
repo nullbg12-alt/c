@@ -38,7 +38,80 @@
     </style>
 </head>
 <body>
+    <!-- Main Menu Overlay -->
+    <div id="main-menu">
+        <div class="menu-box">
+            <h1>BlockyWorld</h1>
+            <p class="version">b1.9</p>
+            
+            <div class="menu-section">
+                <h2>Singleplayer</h2>
+                <button id="btn-play-normal">Normal World</button>
+                <button id="btn-play-flat">Flat World</button>
+            </div>
+
+            <div class="menu-section">
+                <h2>Multiplayer</h2>
+                <div class="input-row">
+                    <input type="text" id="menu-name" placeholder="Name" maxlength="200">
+                    <input type="color" id="menu-color" title="Your color">
+                </div>
+                <div class="input-row">
+                    <input type="text" id="menu-ip" placeholder="IP:PORT (blank = local)">
+                    <button id="btn-connect">Connect</button>
+                </div>
+                <p id="menu-status">offline</p>
+            </div>
+        </div>
+    </div>
+
     <canvas id="game"></canvas>
+    
+    <!-- In-game top bar (hidden by default) -->
+    <div id="in-game-ui" style="display: none;">
+        <button id="btn-menu">Menu</button>
+    </div>
+
+    <style>
+        #main-menu {
+            position: fixed; inset: 0; background: #111;
+            display: flex; align-items: center; justify-content: center;
+            font-family: Arial, sans-serif; z-index: 1000;
+        }
+        .menu-box {
+            background: #222; padding: 30px; border-radius: 8px;
+            border: 2px solid #444; width: 320px; text-align: center;
+            color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .menu-box h1 { margin: 0 0 5px 0; font-size: 36px; color: #3fa34d; }
+        .version { margin: 0 0 20px 0; color: #888; font-size: 14px; }
+        .menu-section { margin-bottom: 20px; text-align: left; }
+        .menu-section h2 { font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 10px; color: #aaa; }
+        .menu-box button {
+            display: block; width: 100%; padding: 10px; margin-bottom: 8px;
+            background: #333; color: white; border: 1px solid #555;
+            border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+        .menu-box button:hover { background: #444; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-row input[type="text"] {
+            flex: 1; padding: 8px; background: #111; border: 1px solid #444;
+            color: white; border-radius: 4px; outline: none;
+        }
+        .input-row input[type="color"] {
+            width: 36px; padding: 0; border: none; border-radius: 4px; cursor: pointer;
+        }
+        #menu-status { font-size: 12px; font-weight: bold; color: #ff5c5c; margin: 0; text-align: center; }
+        
+        #in-game-ui {
+            position: fixed; top: 10px; right: 10px; z-index: 100;
+        }
+        #btn-menu {
+            padding: 8px 16px; background: rgba(0,0,0,0.6); color: white;
+            border: none; border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+        #btn-menu:hover { background: rgba(0,0,0,0.8); }
+    </style>
 
     <script src="script/perlin.js"></script>
     <script src="script/rng.js"></script>

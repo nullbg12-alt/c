@@ -37,47 +37,50 @@ function setBlock(x, y, id) {
 // ---- Pure column info (no block reads) ----
 
 function computeColumnInfo(x) {
+    if (worldMode === 'flat') {
+        return { surfaceY: GROUND_LEVEL, isMountain: false, dirtDepth: 4, isDesert: false };
+    }
+
     const sampleX = x + 100;
-    const FAR_START = 12550821;
+    
+    // Biome noise (very slow frequency)
+    const biomeNoise = Perlin.noise(sampleX * 0.003);
+    const isDesert = biomeNoise > 0.55; // Top ~25% of the map
 
     const baseHills = Perlin.noise(sampleX * 0.005) * 8;
     const mountainNoise = Perlin.noise(sampleX * 0.015);
     const mountains = Math.pow(mountainNoise, 3.0) * 65;
     const surfaceDetail = Perlin.noise(sampleX * 0.15) * 2;
     const randomRoughness = (Perlin.noise(sampleX * 0.7) * 2) - 1;
-    let totalOffset = baseHills + mountains + surfaceDetail + randomRoughness;
-    let surfaceY = GROUND_LEVEL + Math.floor(totalOffset);
-    let isMountain = mountains > 18;
-    let dirtDepth = 4 + Math.floor(Perlin.noise(sampleX * 0.5) * 3);
 
+    let totalOffset = baseHills + mountains + surfaceDetail + randomRoughness;
+
+    // --- Far Lands: spiky int32 overflow chaos ---
+    const FAR_START = 12550821;
     const FAR_TRANSITION = 2000;
     const ax = Math.abs(sampleX);
     if (ax >= FAR_START) {
         const t = Math.min(1, (ax - FAR_START) / FAR_TRANSITION);
-
         const x2 = Math.imul(sampleX | 0, sampleX | 0);
         const x3 = Math.imul(x2, 40503);
         const chaosA = x2 / 2147483647;
         const chaosB = x3 / 2147483647;
-
         const brokenOffset = chaosA * 80 + chaosB * 20;
         totalOffset = totalOffset * (1 - t) + brokenOffset * t;
     }
 
-    surfaceY = GROUND_LEVEL + Math.floor(totalOffset);
-    isMountain = mountains > 18;
-    dirtDepth = 4 + Math.floor(Perlin.noise(sampleX * 0.5) * 3);
-
-    return { surfaceY, isMountain, dirtDepth };
-}
-
-function columnRng(x) {
-    const key = x + ':' + serverSeed;
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < key.length; i++) {
-        h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
+    let surfaceY = GROUND_LEVEL + Math.floor(totalOffset);
+    
+    // --- Desert flattening ---
+    // Flatten the terrain for plains-like terracotta mesas
+    if (isDesert) {
+        surfaceY = GROUND_LEVEL + Math.floor(totalOffset * 0.2) - 5;
     }
-    return mulberry32(h);
+
+    const isMountain = !isDesert && mountains > 18;
+    const dirtDepth = 4 + Math.floor(Perlin.noise(sampleX * 0.5) * 3);
+
+    return { surfaceY, isMountain, dirtDepth, isDesert };
 }
 
 // ---- Chunk generation ----
@@ -101,19 +104,37 @@ function generateChunk(cx, cy, data) {
         const info = computeColumnInfo(x);
         const surfaceY = info.surfaceY;
         const isMountain = info.isMountain;
+        const isDesert = info.isDesert;
         const dirtDepth = info.dirtDepth;
 
         for (let ly = 0; ly < CHUNK_SIZE; ly++) {
             const y = y0 + ly;
             let id = 0;
 
-            if (y < BEDROCK_LAYERS) id = 11;
-            else if (y > surfaceY) id = 0;
-            else if (y === surfaceY) id = isMountain ? 8 : 1;
-            else if (y > surfaceY - dirtDepth) id = isMountain ? 10 : 2;
-            else if (y > surfaceY - 56) id = 3;
-            else if (y > surfaceY - 120) id = 5;
-            else id = 4;
+            if (y < BEDROCK_LAYERS) {
+                id = 11;
+            } else if (y > surfaceY) {
+                id = 0;
+            } else if (y === surfaceY) {
+                // Surface blocks
+                if (isDesert) id = 9;         // Terracotta surface
+                else if (isMountain) id = 8;  // Calcite
+                else id = 1;                  // Grass
+            } else if (y > surfaceY - dirtDepth) {
+                // Subsurface blocks
+                if (isDesert) id = 9;         // Terracotta
+                else if (isMountain) id = 10;
+                else id = 2;                  // Dirt
+            } else if (isDesert && y > surfaceY - dirtDepth - 4) {
+                // A few extra layers of terracotta before hitting stone
+                id = 9;
+            } else if (y > surfaceY - 56) {
+                id = 3; // Stone
+            } else if (y > surfaceY - 120) {
+                id = 5; // Deepslate
+            } else {
+                id = 4; // Dark Stone
+            }
 
             data[ly * CHUNK_SIZE + lx] = id;
         }
@@ -214,7 +235,7 @@ function generateChunk(cx, cy, data) {
         if (rng() > 0.5) continue;
 
         const info = computeColumnInfo(x);
-        if (info.isMountain) continue;
+        if (info.isMountain || info.isDesert) continue;
         const surfY = info.surfaceY;
         if (surfY < 5 || surfY >= WORLD_HEIGHT) continue;
 
